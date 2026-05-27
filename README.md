@@ -1,4 +1,4 @@
-# 🦉 Charles Document Generator
+# 🦉 Ardoise Document Generator
 
 This project provides an interactive script to generate various Typst documents (quotes, maintenance contracts).
 

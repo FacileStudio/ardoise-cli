@@ -24,7 +24,7 @@ async function main() {
   const config = await loadYaml(configPath);
   if (!config) process.exit(1);
 
-  intro(`🦉 Charles - ${basename(configPath)}`);
+  intro(`🦉 Ardoise - ${basename(configPath)}`);
 
   for (const type of (Object.keys(DOC_CONFIG) as DocType[])) {
     if (!config[type]) continue; // On ne traite que ce qui est coché dans le YAML

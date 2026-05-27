@@ -1,3 +1,3 @@
 bun run build
-cp ./charles ~/.local/bin
-echo "🎉 Charles installed to ~/.local/bin/charles"
+cp ./ardoise ~/.local/bin
+echo "🎉 Ardoise installed to ~/.local/bin/ardoise"

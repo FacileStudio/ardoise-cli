@@ -1,11 +1,11 @@
 {
-  "name": "charles-cli",
+  "name": "ardoise-cli",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
   "scripts": {
     "start": "bun run src/index.ts",
-    "build": "bun build src/index.ts --compile --outfile charles"
+    "build": "bun build src/index.ts --compile --outfile ardoise"
   },
   "devDependencies": {
     "@types/bun": "latest"
