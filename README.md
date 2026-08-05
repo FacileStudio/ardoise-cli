@@ -1,96 +1,103 @@
-# 🦉 Ardoise Document Generator
+# ardoise-cli
 
-This project provides an interactive script to generate various Typst documents (quotes, maintenance contracts).
+Batch generator for French freelance paperwork. It reads one YAML job file and compiles
+Typst templates into PDFs: invoices, maintenance quotes, and the two matching contracts.
 
-## Setup
+This repo has **nothing to do with the `Ardoise` invoicing product**. Same French word,
+different project: `Ardoise` is a deployed invoicing app with Stripe and a database, while
+`ardoise-cli` is a standalone Bun binary that turns a YAML file into PDFs and stores
+nothing. They share no code and no data. This is a documented suite gotcha; do not wire
+them together on the strength of the name.
 
-1.  **Install Bun**: If you don't have Bun installed, follow the instructions on their official website: [https://bun.sh](https://bun.sh)
-2.  **Install Typst**: Make sure Typst is installed and available in your PATH. Refer to the Typst documentation for installation instructions.
+## What it does
+
+- Reads provider, client, and document data from a single YAML job file
+- Generates a service invoice, a maintenance quote, and both matching contracts
+- Emits only the document types actually present in the YAML file
+- Injects values into `{{placeholder}}` tags in the Typst templates
+- Compiles each document with the `typst` CLI and removes the intermediate `.typ`
+- Names the output from the client name, or from an explicit `output_name`
+- Writes to the current directory, or to a target directory of your choice
+
+## Stack
+
+| Layer | Tech |
+|---|---|
+| CLI | Bun (TypeScript, ESM), `node:util` `parseArgs`, `@clack/prompts` 1.x for terminal output |
+| Runtime | `Bun.YAML` for parsing, `Bun.spawnSync` to drive the `typst` CLI |
+| Storage | None — a YAML file in, PDFs out |
+
+Typst is an external prerequisite, not a dependency: the binary shells out to
+`typst compile`.
+
+## Install
+
+Requires [Bun](https://bun.sh) and the [Typst](https://typst.app) CLI on your `PATH`.
+
+```sh
+bun install
+./install.sh
+```
+
+`install.sh` runs `bun run build`, which compiles `src/index.ts` into a standalone `ardoise`
+binary, then copies it to `~/.local/bin/ardoise`. Make sure that directory is on your
+`PATH`. To run from the repo without installing:
+
+```sh
+bun run start
+```
 
 ## Usage
 
-1.  **Run the generator**:
-    ```bash
-    bun run start
-    ```
-    or, since `index.ts` is executable:
-    ```bash
-    ./index.ts
-    ```
+```sh
+ardoise                          # reads ./job.yml, writes PDFs next to it
+ardoise -f clients/spacex.yml    # a different job file
+ardoise -f spacex.yml -o out/    # write the PDFs into out/
+```
 
-2.  **Follow the prompts**: The script will interactively ask you for client details, product/service information, and which documents you want to generate.
+One run produces one PDF per document block found in the YAML. Full reference:
+[docs/usage.md](docs/usage.md).
 
-3.  **Generated Files**: The generated `.typ` files and their compiled `.pdf` versions will be created in the root directory of this project, named like `generated-devis-prestation-<client_name>.typ` and `generated-devis-prestation-<client_name>.pdf`.
+## Configuration
 
-## Demo
+There are no environment variables. Everything lives in the job file, `./job.yml` by
+default.
 
-![demo](demo.gif)
+| Block | What it does |
+|---|---|
+| `prestataire` | Your own details — name, address, SIRET, bank, `tva_rate` |
+| `client` | The billed party |
+| `prestation` | Emits a service invoice |
+| `maintenance` | Emits a maintenance quote |
+| `contrat_prestation` | Emits a service contract |
+| `contrat_maintenance` | Emits a maintenance contract |
 
+The repo's `job.yml` is a working example with fictional data. Full reference:
+[docs/configuration.md](docs/configuration.md).
 
-## Job Configuration (`job.yml`)
+## Structure
 
-The `job.yml` file serves as a central configuration for defining all the dynamic data used in document generation. It allows you to pre-fill details for service providers, clients, service prestations, maintenance contracts, and general contract information.
+```
+src/
+  index.ts        Argument parsing and the generation loop
+  config.ts       Document type registry — labels and filename prefixes
+  processor.ts    YAML to template variable mapping, {{tag}} injection
+  utils.ts        YAML loading and the typst compile call
+  templates/      Typst source for each document, stored as TypeScript strings
+job.yml           Example and default job file
+docs/             Architecture, configuration, development, usage
+```
 
-### Structure of `job.yml`
+## Documentation
 
-```yml
-prestataire:
-  name: "Jean Codeur EURL"
-  legal_form: "EURL au capital de 1000€"
-  address: "42 Rue de l'Innovation"
-  city: "75001 Paris"
-  country: "France"
-  siret: "123 456 789 00012"
-  email: "contact@jeancodeur.fr"
-  phone: "06 01 02 03 04"
-  bank_name: "Banque Digitale"
-  iban: "FR76 1234 5678 9012 3456 7890 123"
-  bic: "BDIGFRXX"
-  tva_rate: 20
+| Doc | What's in it |
+|---|---|
+| [Architecture](docs/architecture.md) | Generation pipeline, variable mapping, template contract |
+| [Configuration](docs/configuration.md) | Every job file key and every template variable |
+| [Development](docs/development.md) | Local setup, adding a template, building the binary |
+| [Usage](docs/usage.md) | Every flag, with examples and output naming rules |
 
-client:
-  name: "SpaceX Exploration Technologies"
-  address: "Rocket Road"
-  city: "Hawthorne, CA 90250"
-  country: "USA"
-  siret: "0"
+---
 
-prestation:
-  number: "FACT-2026-001"
-  date: "05/02/2026"
-  due: "05/03/2026"
-  items:
-    - description: "Développement Module IA"
-      quantity: 5
-      unit: "jours"
-      price: 650
-    - description: "Architecture Cloud"
-      quantity: 2
-      unit: "jours"
-      price: 800
-
-maintenance:
-  number: "DEVIS-MAINT-2026-001"
-  date: "10/02/2026"
-  validity_date: "10/03/2026"
-  maintenance_period: "Février 2026"
-  railway_estimate: 150.00
-  items:
-    - description: "Forfait Maintenance Mensuel"
-      quantity: 1
-      unit: "mois"
-      price: 450
-
-contrat_prestation:
-  number: "CONT-PRESTA-SPX-01"
-  date: "05/02/2026"
-  quote_number: "FACT-2026-001"
-  output_name: "Contrat_Projet_SpaceX"
-
-contrat_maintenance:
-  number: "CONT-MAINT-SPX-01"
-  date: "15/02/2026"
-  output_name: "Contrat_Maintenance_SpaceX"
-  ```
-
-By modifying this file, you can quickly generate documents with consistent and pre-defined information without needing to interactively input all details each time.
+Part of the [Facile Suite](https://facile.studio) — self-hosted tools for creative studios
+and freelancers. One login, zero cloud dependency.
