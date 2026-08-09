@@ -22,7 +22,8 @@ typst --version
 bun install
 ```
 
-The only runtime dependency is `@clack/prompts`; `@types/bun` is the only dev dependency.
+There are no runtime dependencies; `@types/bun` is the only dev dependency. Terminal output
+goes through `src/ui.ts`, the suite-standard output helper.
 
 ## Run
 
@@ -42,12 +43,16 @@ Generated artifacts are gitignored: `generated-*.typ`, `*.pdf`, and the `ardoise
 ## Build and install
 
 ```sh
-bun run build     # bun build src/index.ts --compile --outfile ardoise
-./install.sh      # build, then copy ./ardoise to ~/.local/bin
+bun run build           # bun build src/index.ts --compile --outfile ardoise
+./install.sh --source   # clone, build, and install into ~/.local/bin
 ```
 
 `--compile` bundles the runtime, the sources, and the Typst templates into one executable,
 so the installed binary has no dependency on the repo. It still needs `typst` at runtime.
+
+`src/version.ts` imports `version` out of `package.json`; the bundler inlines it, so the
+binary reports the right `--version` with no `package.json` beside it. Bump the version in
+`package.json` and nowhere else.
 
 ## Tests
 

@@ -18,11 +18,23 @@ present in the job file, then exits.
 |---|---|---|---|
 | `-f, --file` | string | `./job.yml` | Path to the YAML job file |
 | `-o, --out` | string | current directory | Directory to write the generated files into |
-| `-h, --help` | boolean | `false` | Accepted by the parser, but the program does not act on it and generates as usual |
+| `--no-color` | boolean | `false` | Disable colored output |
+| `-h, --help` | boolean | `false` | Print usage and exit 0 |
+| `-V, --version` | boolean | `false` | Print `ardoise <semver>` and exit 0 |
 
-Parsing is strict. An unknown flag aborts the run with a `parseArgs` error rather than being
+Color is also disabled when the target stream is not a TTY or `NO_COLOR` is set.
+
+Parsing is strict. An unknown flag aborts the run with exit status 2 rather than being
 ignored, and positional arguments are not accepted — pass the job file with `-f`, never as
 a bare argument.
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Every requested document was generated |
+| `1` | The job file is missing or unparseable, or at least one document failed to compile |
+| `2` | Usage error, such as an unknown flag |
 
 ## Generating from the default job file
 
@@ -30,12 +42,12 @@ a bare argument.
 ardoise
 ```
 
-Reads `./job.yml`, writes each document beside it, and reports progress in French: an intro
-line naming the job file, one spinner per document that ends on
-`✅ PDF prêt : <file>.pdf`, and a closing `🎉 Tous les documents ont été générés.`
+Reads `./job.yml`, writes each document beside it, and reports progress: a `▸` line naming
+the job file, one `✓` line per generated PDF, and a closing `✓ <n> document(s) generated`.
 
-With no `-f` and no `./job.yml` present, the command exits with status 1 and prints nothing.
-The same happens when the file exists but is not valid YAML.
+With no `-f` and no `./job.yml` present, the command prints
+`✗ no job file found — create ./job.yml or pass --file <path>` to stderr and exits 1. A file
+that exists but is not valid YAML fails the same way.
 
 ## Choosing a job file
 
@@ -43,7 +55,7 @@ The same happens when the file exists but is not valid YAML.
 ardoise -f clients/spacex/job.yml
 ```
 
-The intro line shows the file's basename — `🦉 Ardoise - job.yml` — so a per-client layout
+The opening line shows the file's basename — `▸ Reading job.yml` — so a per-client layout
 stays readable. The path is used as given; nothing is resolved relative to the job file itself, so `-o` is
 relative to your current directory, not to `-f`.
 
@@ -95,8 +107,8 @@ three is the usual way.
 
 Each document is written as a `.typ` next to its PDF, compiled, then deleted on success. A
 `.typ` left behind means Typst failed on that document; its error is printed to stderr and
-the run continues with the next one. The final `🎉` line appears whether or not individual
-documents failed, so check the output list rather than the exit status.
+the run continues with the next one. A partial failure is still a failure: the run ends on
+`✗ <n> document(s) generated, <m> failed` and exits 1.
 
 ## Authentication
 

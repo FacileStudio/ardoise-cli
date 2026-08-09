@@ -23,7 +23,7 @@ them together on the strength of the name.
 
 | Layer | Tech |
 |---|---|
-| CLI | Bun (TypeScript, ESM), `node:util` `parseArgs`, `@clack/prompts` 1.x for terminal output |
+| CLI | Bun (TypeScript, ESM), `node:util` `parseArgs`, `src/ui.ts` for terminal output |
 | Runtime | `Bun.YAML` for parsing, `Bun.spawnSync` to drive the `typst` CLI |
 | Storage | None — a YAML file in, PDFs out |
 
@@ -32,20 +32,15 @@ Typst is an external prerequisite, not a dependency: the binary shells out to
 
 ## Install
 
-Requires [Bun](https://bun.sh) and the [Typst](https://typst.app) CLI on your `PATH`.
-
 ```sh
-bun install
-./install.sh
+curl -fsSL https://raw.githubusercontent.com/FacileStudio/ardoise-cli/master/install.sh | bash
 ```
 
-`install.sh` runs `bun run build`, which compiles `src/index.ts` into a standalone `ardoise`
-binary, then copies it to `~/.local/bin/ardoise`. Make sure that directory is on your
-`PATH`. To run from the repo without installing:
+Installs to `~/.local/bin`. Pass `--bin-dir <dir>` to change that, `--source` to build from
+source, `--no-skill` to skip AI agent skill registration.
 
-```sh
-bun run start
-```
+The [Typst](https://typst.app) CLI must be on your `PATH` at runtime — `ardoise` shells out
+to `typst compile`.
 
 ## Usage
 
@@ -83,6 +78,8 @@ src/
   config.ts       Document type registry — labels and filename prefixes
   processor.ts    YAML to template variable mapping, {{tag}} injection
   utils.ts        YAML loading and the typst compile call
+  ui.ts           Suite-standard output helper — glyphs, colors, streams
+  version.ts      Version string, inlined from package.json at build time
   templates/      Typst source for each document, stored as TypeScript strings
 job.yml           Example and default job file
 docs/             Architecture, configuration, development, usage
