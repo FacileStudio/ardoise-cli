@@ -1,19 +1,17 @@
 {
   "name": "ardoise-cli",
+  "version": "0.1.0",
   "module": "src/index.ts",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "start": "bun run src/index.ts",
-    "build": "bun build src/index.ts --compile --outfile ardoise"
-  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
-  "dependencies": {
-    "@clack/prompts": "^1.0.0"
-  }
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "build": "bun build src/index.ts --compile --outfile ardoise"
+  },
+  "type": "module"
 }
