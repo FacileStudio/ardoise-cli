@@ -1,0 +1,80 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.os_name }}/${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: bun-darwin-x64
+            os_name: darwin
+            arch: amd64
+          - target: bun-darwin-arm64
+            os_name: darwin
+            arch: arm64
+          - target: bun-linux-x64
+            os_name: linux
+            arch: amd64
+          - target: bun-linux-arm64
+            os_name: linux
+            arch: arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Bun cross-compiles from one runner, so every target is built on Linux.
+      - name: Build
+        run: bun build src/index.ts --compile --target=${{ matrix.target }} --outfile ardoise
+
+      - name: Package
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          archive="ardoise_${version}_${{ matrix.os_name }}_${{ matrix.arch }}.tar.gz"
+          tar -czf "$archive" ardoise
+          mkdir -p dist
+          mv "$archive" dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ardoise-${{ matrix.os_name }}-${{ matrix.arch }}
+          path: dist/*.tar.gz
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum *.tar.gz > checksums.txt
+          cat checksums.txt
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            dist/*.tar.gz dist/checksums.txt
