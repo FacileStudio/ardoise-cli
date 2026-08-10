@@ -33,7 +33,7 @@ Typst is an external prerequisite, not a dependency: the binary shells out to
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/FacileStudio/ardoise-cli/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/FacileStudio/ardoise-cli/main/install.sh | bash
 ```
 
 Installs to `~/.local/bin` via [facile](https://github.com/FacileStudio/facile), the suite
