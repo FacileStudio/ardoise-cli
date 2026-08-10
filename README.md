@@ -36,11 +36,17 @@ Typst is an external prerequisite, not a dependency: the binary shells out to
 curl -fsSL https://raw.githubusercontent.com/FacileStudio/ardoise-cli/master/install.sh | bash
 ```
 
-Installs to `~/.local/bin`. Pass `--bin-dir <dir>` to change that, `--source` to build from
-source, `--no-skill` to skip AI agent skill registration.
+Installs to `~/.local/bin` via [facile](https://github.com/FacileStudio/facile), the suite
+installer. Pass `--bin-dir <dir>` to change that, `--source` to build from source.
 
-The [Typst](https://typst.app) CLI must be on your `PATH` at runtime — `ardoise` shells out
-to `typst compile`.
+Already have `facile`:
+
+```sh
+facile install ardoise
+```
+
+The [Typst](https://typst.app) CLI must be on your `PATH` at runtime — `ardoise` shells
+out to `typst compile`.
 
 ## Usage
 
